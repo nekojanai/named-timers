@@ -96,4 +96,10 @@ button:focus-visible {
   border: 2px solid #646cff;
   border-radius: 5px;
   background-color: #242424;
+  .timer-table-name-col, .timer-table-timer-col {
+    text-align: left;
+  }
+  .timer-table-timer-col {
+    font-family: monospace;
+  }
 }

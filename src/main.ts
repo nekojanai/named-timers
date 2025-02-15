@@ -14,6 +14,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <tr>
         <td>Name</td>
         <td>Timer</td>
+        <td></td>
       </tr>
     </thead>
     <tbody></tbody>
@@ -25,35 +26,88 @@ const createTimerFormElement = document.querySelector<HTMLFormElement>('#create-
 const createTimerNameInputElement = document.querySelector<HTMLInputElement>('#create-timer-name-input')!;
 const createTimerSubmitButtonElement = document.querySelector<HTMLButtonElement>('#create-timer-submit-button')!;
 
+const genUUID = function() {
+  return crypto.randomUUID();
+}
 
+const timeSince = (timeInSeconds: number) => {
+  // at some point I want to make this return a nicely formatted string of text, but not rn
+  return timeInSeconds;
+};
 
 const createNewTimer = (name: string) => {
   const savedTimers = retrieveSavedTimers();
-  savedTimers.push({ name, createdAt: new Date() });
+  savedTimers.push({ id: genUUID(), name, createdAt: new Date(), pausedAt: null });
   saveTimers(savedTimers);
   timers = savedTimers;
   updateTimerTable();
 };
 
-function addTimer(timer: TaskTimer) {
-  const createdAtDate = new Date(timer.createdAt);
-   const emptyRowElement = createElement('tr', {
-    innerHTML: `<td>${timer.name}</td>`
+const modifyTimer = (timer: TaskTimer) => {
+  const savedTimers = retrieveSavedTimers();
+  const foundTimerIndex = savedTimers.findIndex((savedTimer) => savedTimer.id === timer.id);
+  if (foundTimerIndex === -1) return;
+  savedTimers[foundTimerIndex] = timer; 
+  saveTimers(savedTimers);
+  timers = savedTimers;
+  updateTimerTable();
+}
+
+const removeTimer = (timer: TaskTimer) => {
+  const savedTimers = retrieveSavedTimers();
+  const foundTimerIndex = savedTimers.findIndex((savedTimer) => savedTimer.id === timer.id);
+  if (foundTimerIndex === -1) return;
+  savedTimers[foundTimerIndex] = undefined as unknown as TaskTimer;
+  const savedTimersFiltered = savedTimers.filter((v) => v);
+  saveTimers(savedTimersFiltered);
+  timers = savedTimersFiltered;
+  updateTimerTable();
+}
+
+function addTimerToTable(timer: TaskTimer) {
+  const secondsPassed = () => Math.floor(((Date.now() - timer.createdAt.valueOf()) / 1000)) ;
+   const rowElement = createElement('tr', {
+    innerHTML: `<td class="timer-table-name-col">${timer.name}</td>`
   });
-  const lastColumnElement = createElement('td', {
-    innerHTML: `<td>${(Date.now() - createdAtDate.valueOf()) / 1000}s</td>`
+  const timerColumnElement = createElement('td', {
+    innerHTML: `started: ${timer.createdAt.toUTCString()}<br>${timer.pausedAt?.toUTCString() ? 'stopped: '+timer.pausedAt.toUTCString() : ''}`
   });
-  emptyRowElement.append(lastColumnElement);
-  setInterval(()=>{
-    lastColumnElement.innerText = `${(Date.now() - createdAtDate.valueOf()) / 1000}s`
-  }, 1000);
-  timerTableTBodyElement.append(emptyRowElement); 
+  timerColumnElement.classList.add('timer-table-timer-col')
+  rowElement.append(timerColumnElement);
+  if (timer.pausedAt === null) {
+    setInterval(()=>{
+      timerColumnElement.innerHTML = `started: ${timer.createdAt.toUTCString()}<br>${timer.pausedAt?.toUTCString() ? 'stopped: '+timer.pausedAt.toUTCString() : 'seconds passed: '+timeSince(secondsPassed())+'s'}`
+    }, 1000);
+  }
+  const actionColumn = createElement('td', {});
+  const pauseButton = createElement('button', {
+    innerHTML: timer.pausedAt === null ? 'STOP' : 'paused',
+    disabled: timer.pausedAt !== null
+  });
+  pauseButton.onclick = () => pauseTimer(timer);
+  const removeButton = createElement('button', {
+    innerText: 'remove'
+  });
+  removeButton.onclick = () => {
+    removeTimer(timer);
+  };
+  actionColumn.append(pauseButton);
+  actionColumn.append(removeButton);
+  rowElement.append(actionColumn);
+  timerTableTBodyElement.append(rowElement);
+}
+
+function pauseTimer(timer: TaskTimer) {
+  modifyTimer({
+    ...timer,
+    pausedAt: new Date()
+  });
 }
 
 function addEmptyInfoRow() {
   const emptyRowElement = createElement('tr', {
     innerHTML: `
-<td colspan="2">- 0 timers -</td>
+<td colspan="3">- 0 timers -</td>
     `
   })
   timerTableTBodyElement.append(emptyRowElement);
@@ -72,14 +126,34 @@ function clearInputAndDisabledSubmit() {
   createTimerSubmitButtonElement.disabled = !createTimerSubmitButtonElement.disabled;
 }
 
-type TaskTimer = {
+type TaskTimerStrings = {
+  id: string,
   name: string,
-  createdAt: Date
+  createdAt: string,
+  pausedAt: string | null
+}
+
+type TaskTimer = {
+  id: string,
+  name: string,
+  createdAt: Date,
+  pausedAt: Date | null
+}
+
+function taskTimerStringsToTaskTimer(timer: TaskTimerStrings): TaskTimer {
+  return {
+    ...timer,
+    createdAt: new Date(timer.createdAt),
+    pausedAt: timer.pausedAt ? new Date(timer.pausedAt) : null
+  }
 }
 
 function retrieveSavedTimers(): TaskTimer[] {
-  const savedTimers = localStorage.getItem('timers')
-  return savedTimers ? JSON.parse(savedTimers) as TaskTimer[] : [];
+  const stringifiedSavedTimers = localStorage.getItem('timers')
+  if (!stringifiedSavedTimers) return [];
+  const taskTimerWithoutParsedDates = (JSON.parse(stringifiedSavedTimers) as TaskTimerStrings[]).filter((v) => !!v);
+  const fullyParsedTimers = taskTimerWithoutParsedDates.map((timer) => taskTimerStringsToTaskTimer(timer));
+  return (fullyParsedTimers);
 }
 
 function saveTimers(timers: TaskTimer[]) {
@@ -113,7 +187,7 @@ function updateTimerTable() {
     addEmptyInfoRow()
   } else {
     timers.forEach(function(timer) {
-      addTimer(timer);
+      addTimerToTable(timer);
     })
   }
 }
