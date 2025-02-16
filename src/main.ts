@@ -1,5 +1,5 @@
 import './style.css'
-import { createElement } from './utils';
+import { createElement, getTimeDiffHumanReadable } from './utils';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1 class="title">Named Timers</h1>
@@ -29,11 +29,6 @@ const createTimerSubmitButtonElement = document.querySelector<HTMLButtonElement>
 const genUUID = function() {
   return crypto.randomUUID();
 }
-
-const timeSince = (timeInSeconds: number) => {
-  // at some point I want to make this return a nicely formatted string of text, but not rn
-  return timeInSeconds;
-};
 
 const createNewTimer = (name: string) => {
   const savedTimers = retrieveSavedTimers();
@@ -65,7 +60,6 @@ const removeTimer = (timer: TaskTimer) => {
 }
 
 function addTimerToTable(timer: TaskTimer) {
-  const secondsPassed = () => Math.floor(((Date.now() - timer.createdAt.valueOf()) / 1000)) ;
    const rowElement = createElement('tr', {
     innerHTML: `<td class="timer-table-name-col">${timer.name}</td>`
   });
@@ -76,23 +70,23 @@ function addTimerToTable(timer: TaskTimer) {
   rowElement.append(timerColumnElement);
   if (timer.pausedAt === null) {
     setInterval(()=>{
-      timerColumnElement.innerHTML = `started: ${timer.createdAt.toUTCString()}<br>${timer.pausedAt?.toUTCString() ? 'stopped: '+timer.pausedAt.toUTCString() : 'seconds passed: '+timeSince(secondsPassed())+'s'}`
+      timerColumnElement.innerHTML = `started: ${timer.createdAt.toUTCString()}<br>${timer.pausedAt?.toUTCString() ? 'stopped: '+timer.pausedAt.toUTCString() : getTimeDiffHumanReadable(new Date(), timer.createdAt)}`
     }, 1000);
   }
   const actionColumn = createElement('td', {});
   const pauseButton = createElement('button', {
-    innerHTML: timer.pausedAt === null ? 'STOP' : 'paused',
-    disabled: timer.pausedAt !== null
+    innerHTML: 'STOP',
   });
   pauseButton.onclick = () => pauseTimer(timer);
-  const removeButton = createElement('button', {
-    innerText: 'remove'
-  });
-  removeButton.onclick = () => {
-    removeTimer(timer);
-  };
-  actionColumn.append(pauseButton);
-  actionColumn.append(removeButton);
+  if (timer.pausedAt !== null) {
+    const removeButton = createElement('button', {
+      innerText: 'REMOVE'
+    });
+    removeButton.onclick = () => removeTimer(timer);
+    actionColumn.append(removeButton);
+  } else {
+    actionColumn.append(pauseButton);
+  }
   rowElement.append(actionColumn);
   timerTableTBodyElement.append(rowElement);
 }
@@ -186,7 +180,7 @@ function updateTimerTable() {
   if (timers.length <= 0) {
     addEmptyInfoRow()
   } else {
-    timers.forEach(function(timer) {
+    timers.reverse().forEach(function(timer) {
       addTimerToTable(timer);
     })
   }
