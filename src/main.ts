@@ -1,33 +1,24 @@
 import './style.css'
-import { createElement, getTimeDiffHumanReadable } from './utils';
+import { createElement, genFile, genUUID, getTimeDiffHumanReadable } from './utils';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <h1 class="title">Named Timers</h1>
-  <h4 class="subtitle">a self-organization task time tracking tool</h4>
-  <form id="create-timer-form" class="create-timer-form">
-    <label for="name">name</label>
-    <input type="text" id="create-timer-name-input" name="name" placeholder="some boring task..." />
-    <button type="submit" id="create-timer-submit-button" disabled>Create timer</button>
-  </form>
-  <table id="timer-table">
-    <thead>
-      <tr>
-        <td>Name</td>
-        <td>Timer</td>
-        <td></td>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-`;
 const timerTableElement = document.querySelector<HTMLTableElement>('#timer-table')!;
 const timerTableTBodyElement = timerTableElement.tBodies[0]!;
 const createTimerFormElement = document.querySelector<HTMLFormElement>('#create-timer-form')!;
 const createTimerNameInputElement = document.querySelector<HTMLInputElement>('#create-timer-name-input')!;
 const createTimerSubmitButtonElement = document.querySelector<HTMLButtonElement>('#create-timer-submit-button')!;
 
-const genUUID = function() {
-  return crypto.randomUUID();
+type TaskTimerStrings = {
+  id: string,
+  name: string,
+  createdAt: string,
+  pausedAt: string | null
+}
+
+type TaskTimer = {
+  id: string,
+  name: string,
+  createdAt: Date,
+  pausedAt: Date | null
 }
 
 const createNewTimer = (name: string) => {
@@ -99,12 +90,9 @@ function pauseTimer(timer: TaskTimer) {
 }
 
 function addEmptyInfoRow() {
-  const emptyRowElement = createElement('tr', {
-    innerHTML: `
-<td colspan="3">- 0 timers -</td>
-    `
-  })
-  timerTableTBodyElement.append(emptyRowElement);
+  timerTableTBodyElement.append(createElement('tr', {
+    innerHTML: `<td colspan="3">- 0 timers -</td>`
+  }));
 }
 
 createTimerSubmitButtonElement.onclick = (event) => {
@@ -120,20 +108,6 @@ function clearInputAndDisabledSubmit() {
   createTimerSubmitButtonElement.disabled = !createTimerSubmitButtonElement.disabled;
 }
 
-type TaskTimerStrings = {
-  id: string,
-  name: string,
-  createdAt: string,
-  pausedAt: string | null
-}
-
-type TaskTimer = {
-  id: string,
-  name: string,
-  createdAt: Date,
-  pausedAt: Date | null
-}
-
 function taskTimerStringsToTaskTimer(timer: TaskTimerStrings): TaskTimer {
   return {
     ...timer,
@@ -146,12 +120,15 @@ function retrieveSavedTimers(): TaskTimer[] {
   const stringifiedSavedTimers = localStorage.getItem('timers')
   if (!stringifiedSavedTimers) return [];
   const taskTimerWithoutParsedDates = (JSON.parse(stringifiedSavedTimers) as TaskTimerStrings[]).filter((v) => !!v);
-  const fullyParsedTimers = taskTimerWithoutParsedDates.map((timer) => taskTimerStringsToTaskTimer(timer));
-  return (fullyParsedTimers);
+  return taskTimerWithoutParsedDates.map((timer) => taskTimerStringsToTaskTimer(timer));
 }
 
-function saveTimers(timers: TaskTimer[]) {
-  localStorage.setItem('timers', JSON.stringify(timers));
+function saveTimersStringified(timersStringified: string) {
+  localStorage.setItem('timers', timersStringified);
+}
+
+function saveTimers(taskTimers: TaskTimer[]) {
+  localStorage.setItem('timers', JSON.stringify(taskTimers));
 }
 
 // initializing state
@@ -176,7 +153,6 @@ function updateTimerTable() {
   createTimerSubmitButtonElement.innerText = 'loading...';
   setTimeout(() => createTimerSubmitButtonElement.innerText = backupButtonText, 250)
   timerTableTBodyElement.querySelectorAll('*').forEach((e) => e.remove());
-  console.log(timerTableTBodyElement);
   if (timers.length <= 0) {
     addEmptyInfoRow()
   } else {
@@ -187,4 +163,31 @@ function updateTimerTable() {
 }
 updateTimerTable();
 
+document.querySelector<HTMLButtonElement>('#main-actions-export-button')!.onclick = () => {
+  const data = localStorage.getItem('timers') ?? '';
+  const file = genFile(data);
+  const objectURL = URL.createObjectURL(file);
+  const downloadLinkElement = createElement('a', {
+    href: objectURL,
+    download: file.name
+  });
+  const downloadLinkClickHandler = () => {
+    setTimeout(() => {
+      URL.revokeObjectURL(objectURL);
+      removeEventListener('click', downloadLinkClickHandler);
+    }, 150);
+  };
+  downloadLinkElement.onclick = downloadLinkClickHandler;
+  downloadLinkElement.click();
+};
 
+const dataImportInputElement = document.querySelector<HTMLInputElement>('#main-actions-file-import')!;
+dataImportInputElement.onchange = async function() {
+  const file = (this as unknown as { files: File[] }).files[0];
+  const content = await file.text();
+  saveTimersStringified(content);
+  timers = retrieveSavedTimers();
+  updateTimerTable();
+  dataImportInputElement.value = '';
+};
+document.querySelector<HTMLButtonElement>('#main-actions-import-button')!.onclick = () => dataImportInputElement.click()

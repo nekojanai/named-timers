@@ -71,6 +71,13 @@ button:focus-visible {
   margin-bottom: .2rem;
 }
 
+.main-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: .5rem;
+}
+
 #create-timer-form {
   display: flex;
   justify-content: center;

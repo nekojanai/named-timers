@@ -9,7 +9,31 @@
 </head>
 
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="main-actions">
+      <input type="file" id="main-actions-file-import" accept="application/json" style="display: none;" />
+      <button id="main-actions-import-button">IMPORT</button>
+      <button id="main-actions-export-button">EXPORT</button>
+    </div>
+    <h1 class="title">Named Timers</h1>
+    <h4 class="subtitle">a self-organization task time tracking tool</h4>
+    <form id="create-timer-form" class="create-timer-form">
+      <label for="create-timer-name-input">name</label>
+      <input type="text" id="create-timer-name-input" name="name" placeholder="some boring task..."
+        autocomplete="off" />
+      <button type="submit" id="create-timer-submit-button" disabled>Create timer</button>
+    </form>
+    <table id="timer-table">
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Timer</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 
