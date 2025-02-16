@@ -35,3 +35,12 @@ export const getTimeDiffHumanReadable = (date1: Date, date2: Date) => {
 
   return `${yearsString} ${monthsString} ${daysString} ${hoursString} ${minutesString} ${secondsString}`;
 };
+
+export const genUUID = () => {
+  return crypto.randomUUID();
+}
+
+export const genFile = (data: string) => {
+  const filename = `task-timers-${(new Date()).toISOString().replace(':','_').replace('.','-')}.json`;
+  return new File([data], filename);
+}
