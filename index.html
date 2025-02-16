@@ -3,36 +3,30 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>named timers</title>
+  <title>:: task timers ::</title>
 </head>
 
 <body>
   <div id="app">
+    <h1 class="title">Task Timers</h1>
+    <h4 class="subtitle">a self-organization task time tracking tool</h4>
+    <form id="create-timer-form" class="create-timer-form">
+      <div class="create-timer-form-input-group">
+        <label for="create-timer-name-input">name</label>
+        <input type="text" id="create-timer-name-input" name="name" placeholder="some task..." autocomplete="off" />
+      </div>
+      <button type="submit" id="create-timer-submit-button" disabled>start</button>
+    </form>
+    <table id="timer-table">
+      <tbody></tbody>
+    </table>
     <div class="main-actions">
       <input type="file" id="main-actions-file-import" accept="application/json" style="display: none;" />
       <button id="main-actions-import-button">IMPORT</button>
       <button id="main-actions-export-button">EXPORT</button>
     </div>
-    <h1 class="title">Named Timers</h1>
-    <h4 class="subtitle">a self-organization task time tracking tool</h4>
-    <form id="create-timer-form" class="create-timer-form">
-      <label for="create-timer-name-input">name</label>
-      <input type="text" id="create-timer-name-input" name="name" placeholder="some boring task..."
-        autocomplete="off" />
-      <button type="submit" id="create-timer-submit-button" disabled>Create timer</button>
-    </form>
-    <table id="timer-table">
-      <thead>
-        <tr>
-          <td>Name</td>
-          <td>Timer</td>
-          <td></td>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

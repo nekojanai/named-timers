@@ -1,5 +1,6 @@
 # named-timers
-### timers you can name
+### they're actually stopwatches...
+### you can name them
 ---
 like `timer01` and `asdfasdf` or `iforgotwhatisetthistimerforuhhhhh`
 it's a silly little localStorage utilizing SPA

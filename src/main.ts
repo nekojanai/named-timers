@@ -150,7 +150,7 @@ createTimerNameInputElement.oninput = function() {
 
 function updateTimerTable() {
   const backupButtonText = createTimerSubmitButtonElement.textContent!;
-  createTimerSubmitButtonElement.innerText = 'loading...';
+  createTimerSubmitButtonElement.innerText = '. . .';
   setTimeout(() => createTimerSubmitButtonElement.innerText = backupButtonText, 250)
   timerTableTBodyElement.querySelectorAll('*').forEach((e) => e.remove());
   if (timers.length <= 0) {

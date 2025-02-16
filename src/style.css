@@ -15,16 +15,13 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 #app {
@@ -72,26 +69,30 @@ button:focus-visible {
 }
 
 .main-actions {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: .5rem;
+  font-size: 1rem;
+  margin-top: 2rem;
 }
 
 #create-timer-form {
   display: flex;
+    flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   margin-bottom: 1rem;
   will-change: filter;
   transition: filter 300ms;
   filter: drop-shadow(0 0 .2em #646cffaa) drop-shadow(3px 3px rgb(255, 0, 234)) drop-shadow(-3px -3px rgb(3, 185, 251));
-  &>label {
-    border-radius: 8px 0px 0px 8px;
-  }
-  &>input {
-    border-radius: 0px 8px 8px 0px;
-    margin-right: 1rem;
+  &>.create-timer-form-input-group {
+    display: flex;
+    flex-wrap: nowrap;
+    &>label {
+      border-radius: 8px 0px 0px 8px;
+    }
+    &>input {
+      border-radius: 0px 8px 8px 0px;
+      margin-right: 1rem;
+      max-width: 100px;
+    }
   }
 }
 #create-timer-form:hover {

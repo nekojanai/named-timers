@@ -41,6 +41,7 @@ export const genUUID = () => {
 }
 
 export const genFile = (data: string) => {
+  crypto.getRandomValues
   const filename = `task-timers-${(new Date()).toISOString().replace(':','_').replace('.','-')}.json`;
   return new File([data], filename);
 }
